@@ -1,7 +1,6 @@
 package boba
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -21,8 +20,11 @@ func (m HelpModel) Init() tea.Cmd {
 
 func NewHelpModel(keys ...string) HelpModel {
 	kM := newKeys(keys...)
+	h := help.New()
+	h.ShortSeparator = " • "
+	h.FullSeparator = " "
 	return HelpModel{
-		help: help.New(),
+		help: h,
 		keys: kM,
 	}
 }
@@ -39,35 +41,21 @@ func (m HelpModel) Update(msg tea.Msg) (HelpModel, tea.Cmd) {
 }
 
 func (m HelpModel) View() string {
-	base := strings.Builder{}
-	base.WriteString(fmt.Sprintf("\n%s", m.help.View(m.keys)))
-	return base.String()
+	base := m.help.View(m.keys)
+	base = strings.ReplaceAll(base, "\n", "")
+	return "\n" + strings.Join(strings.Fields(base), " ")
 }
 
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{
 			k.Back,
-		},
-		{
 			k.Quit,
-		},
-		{
 			k.Help,
-		},
-		{
 			k.Select,
-		},
-		{
 			k.Toggle,
-		},
-		{
 			k.Up,
-		},
-		{
 			k.Down,
-		},
-		{
 			k.Filter,
 		},
 	}
