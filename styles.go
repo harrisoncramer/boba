@@ -7,7 +7,6 @@ import (
 type ColorType string
 
 type Colors struct {
-	Danger    string `mapstructure:"danger"`
 	Success   string `mapstructure:"success"`
 	Neutral   string `mapstructure:"neutral"`
 	Primary   string `mapstructure:"primary"`
@@ -17,7 +16,6 @@ type Colors struct {
 // Possible types of colors
 const (
 	Success   ColorType = "Success"
-	Danger    ColorType = "Danger"
 	Primary   ColorType = "Primary"
 	Neutral   ColorType = "Neutral"
 	Secondary ColorType = "Secondary"
@@ -33,7 +31,6 @@ func NewTheme(overrides Colors) Theme {
 		Secondary: "#FFA066",
 		Neutral:   "#979797",
 		Success:   "#98BB6C",
-		Danger:    "#FF5E62",
 	}
 	if overrides.Primary != "" {
 		defaultColors[Primary] = overrides.Primary
@@ -46,9 +43,6 @@ func NewTheme(overrides Colors) Theme {
 	}
 	if overrides.Success != "" {
 		defaultColors[Success] = overrides.Success
-	}
-	if overrides.Danger != "" {
-		defaultColors[Danger] = overrides.Danger
 	}
 	t := make(Theme)
 	for key, color := range defaultColors {
