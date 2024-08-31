@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -28,6 +29,8 @@ type SelectorModel struct {
 	maxHeight      func() int
 	truncated      bool
 	keys           KeyOpts
+	spinner        spinner.Model
+	loading        bool
 }
 
 type NewSelectorModelOpts struct {
@@ -48,6 +51,7 @@ func NewSelectorModel(opts NewSelectorModelOpts) SelectorModel {
 		theme:          opts.Theme,
 		maxHeight:      opts.MaxHeight,
 		keys:           opts.Keys,
+		spinner:        spinner.New(),
 	}
 
 	if !opts.Filter.Hidden {
@@ -63,7 +67,13 @@ func (m SelectorModel) Init() tea.Cmd {
 	return nil
 }
 
+// Used to set the options in the model
 type SelectorOptionsMsg struct {
+	Options SelectorOptions
+}
+
+// Used to set loading state in the model
+type SelectorLoadingMsg struct {
 	Options SelectorOptions
 }
 
@@ -73,8 +83,23 @@ func (m SelectorModel) Update(msg tea.Msg) (SelectorModel, tea.Cmd) {
 	m.filter = UpdateSubmodel(m.filter, msg, &cmds)
 
 	switch msg := msg.(type) {
+	case SelectorLoadingMsg:
+		m.loading = true
+		cmds = append(cmds, m.spinner.Tick)
 	case SelectorOptionsMsg:
+		m.loading = false
 		m.setOptions(msg.Options)
+	case errMsg:
+		m.loading = false
+		if m.loading {
+			var cmd tea.Cmd
+			m.spinner, cmd = m.spinner.Update(msg)
+			cmds = append(cmds, cmd)
+		}
+	case spinner.TickMsg:
+		if m.loading {
+			m.spinner = UpdateSubmodel(m.spinner, msg, &cmds)
+		}
 	case tea.KeyMsg:
 		switch msg.String() {
 		case m.keys.Down:
@@ -111,6 +136,11 @@ func (m SelectorModel) Update(msg tea.Msg) (SelectorModel, tea.Cmd) {
 }
 
 func (m SelectorModel) View() string {
+
+	if m.loading {
+		return fmt.Sprintf("\n%s\n", m.spinner.View())
+	}
+
 	base := strings.Builder{}
 	base.WriteString(rebuildCursor(m.filter.View(), m.filter.Focused(), m.theme))
 	if len(m.visibleOptions) == 0 {
@@ -195,6 +225,13 @@ func (m *SelectorModel) selectVal() tea.Msg {
 			return nil
 		}
 		return SelectMsg{m.options[i]}
+	}
+	return nil
+}
+
+func (m SelectorModel) Load() tea.Msg {
+	if !m.loading {
+		return SelectorLoadingMsg{}
 	}
 	return nil
 }
