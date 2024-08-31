@@ -34,7 +34,7 @@ func NewRouterModel(opts NewRouterModelOpts) tea.Model {
 		QuitKey: opts.Quit,
 	}
 
-	r.setModel(opts.View)
+	r.pushModel(opts.View)
 	return r
 }
 
@@ -47,8 +47,13 @@ func (m Router) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// When a component triggers a view change we set the new model
 	// and then set router params. This RouterParamsMsg can be detected by components
 	// that need query parameters, or other data
-	case changeViewMsg:
-		m.setModel(msg.view)
+	case pushViewMsg:
+		m.pushModel(msg.view)
+		var cmds []tea.Cmd
+		cmds = append(cmds, m.setRouterParams(msg.query), m.Model.Init())
+		return m, tea.Sequence(cmds...)
+	case replaceViewMsg:
+		m.replaceModel(msg.view)
 		var cmds []tea.Cmd
 		cmds = append(cmds, m.setRouterParams(msg.query), m.Model.Init())
 		return m, tea.Sequence(cmds...)
@@ -86,14 +91,6 @@ func (m *Router) handleQuit(msg tea.Msg) tea.Cmd {
 	return nil
 }
 
-// Takes in a view and gets the appropriate model and sets it in the router
-func (m *Router) setModel(view string) {
-	if len(m.ViewStack) == 0 || m.ViewStack[len(m.ViewStack)-1] != view {
-		m.Model = m.Views[view]
-		m.ViewStack = append(m.ViewStack, view)
-	}
-}
-
 // Pops the last view off the stack and navigates to it
 func (m *Router) back() {
 	if len(m.ViewStack) < 2 {
@@ -102,46 +99,67 @@ func (m *Router) back() {
 	i := len(m.ViewStack) - 2
 	prevView := m.ViewStack[i]
 	m.ViewStack = m.ViewStack[:i]
-	m.setModel(prevView)
+	m.pushModel(prevView)
 }
 
-// This message is fired when a model calls the Back method
+// This message is fired when a model calls the Pop method
 type backMsg struct{}
 
-// Navigate to the last top-level model
-func Back() tea.Cmd {
+// Navigate to the previous top-level model
+func Pop() tea.Cmd {
 	return func() tea.Msg {
 		return backMsg{}
 	}
 }
 
-// This message is fired when a model calls the ChangeView method. It is handled by the router.
-type changeViewMsg struct {
+// This message is fired when a model calls the Push method
+type pushViewMsg struct {
 	view  string
 	query url.Values
 }
 
-// Changes the top-level model of the application
-func ChangeView(view string) tea.Cmd {
+// Adds a view to the view stack
+func Push(view string) tea.Cmd {
 	path := strings.Split(view, "?")
-	msg := changeViewMsg{view: path[0]}
+	msg := pushViewMsg{view: path[0]}
 	if len(path) > 1 {
-		query := path[1]
-		queryVals, err := url.ParseQuery(query)
-		if err != nil {
-			log.Fatalf("Error parsing path %v", err)
-		}
-
-		msg.query = queryVals
+		msg.query = parseQuery(path)
 	}
-
-	log.Printf("Router: View is %s\n", view)
-	log.Printf("Router: Path is %s\n", path[0])
-	log.Printf("Router: Params are %+v\n", msg.query)
-
 	return func() tea.Msg {
 		return msg
 	}
+}
+
+// Takes in a view and gets the appropriate model and pushes it to the router stack
+func (m *Router) pushModel(view string) {
+	if len(m.ViewStack) == 0 || m.ViewStack[len(m.ViewStack)-1] != view {
+		m.Model = m.Views[view]
+		m.ViewStack = append(m.ViewStack, view)
+	}
+}
+
+// This message is fired when a model calls the Replace method
+type replaceViewMsg struct {
+	view  string
+	query url.Values
+}
+
+// Replaces the current view in the stack
+func Replace(view string) tea.Cmd {
+	path := strings.Split(view, "?")
+	msg := replaceViewMsg{view: path[0]}
+	if len(path) > 1 {
+		msg.query = parseQuery(path)
+	}
+	return func() tea.Msg {
+		return msg
+	}
+}
+
+// Takes in a view and gets the appropriate model and replaces the current one
+func (m *Router) replaceModel(view string) {
+	m.ViewStack[len(m.ViewStack)-1] = view
+	m.Model = m.Views[view]
 }
 
 /*
@@ -161,4 +179,13 @@ func (m *Router) setRouterParams(vals url.Values) tea.Cmd {
 	return func() tea.Msg {
 		return RouterParamsMsg{vals}
 	}
+}
+
+func parseQuery(path []string) url.Values {
+	query := path[1]
+	queryVals, err := url.ParseQuery(query)
+	if err != nil {
+		log.Fatalf("Error parsing path %v", err)
+	}
+	return queryVals
 }
