@@ -7,11 +7,11 @@ import (
 type ColorType string
 
 type Colors struct {
-	Danger    string
-	Success   string
-	Neutral   string
-	Primary   string
-	Secondary string
+	Danger    string `mapstructure:"danger"`
+	Success   string `mapstructure:"success"`
+	Neutral   string `mapstructure:"neutral"`
+	Primary   string `mapstructure:"primary"`
+	Secondary string `mapstructure:"secondary"`
 }
 
 // Possible types of colors

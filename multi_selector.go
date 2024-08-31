@@ -42,6 +42,7 @@ type NewMultiSelectorModelOpts struct {
 	Theme     Theme
 	Name      string
 	MaxHeight func() int
+	Keys      KeyOpts
 }
 
 // Allows for the toggling of multiple values in a list via a toggle mechanism.
@@ -52,6 +53,7 @@ func NewMultiSelectorModel(opts NewMultiSelectorModelOpts) MultiSelectorModel {
 		visibleOptions: opts.Options,
 		theme:          opts.Theme,
 		maxHeight:      opts.MaxHeight,
+		keys:           opts.Keys,
 	}
 
 	if !opts.Filter.Hidden {
