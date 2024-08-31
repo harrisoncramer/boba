@@ -13,12 +13,13 @@ import (
 // List of all top-level models in the application
 type Views map[string]tea.Model
 
-// The Router is responsible for changing the top-level model in the application and triggering any route-based updates with the
+// The stack of views in the router
+var viewStack []string
+
 type Router struct {
-	Model     tea.Model
-	Views     Views
-	ViewStack []string
-	QuitKey   string
+	Model   tea.Model
+	Views   Views
+	QuitKey string
 }
 
 type NewRouterModelOpts struct {
@@ -27,6 +28,7 @@ type NewRouterModelOpts struct {
 	Quit  string
 }
 
+// The Router is responsible for changing the top-level model in the application and triggering any route-based updates
 // Creates a new router that is responsible for handling navigation around the application via the changeView function
 func NewRouterModel(opts NewRouterModelOpts) tea.Model {
 	r := Router{
@@ -71,7 +73,7 @@ func (m Router) View() string {
 	base := m.Model.View()       // The model of most of the application
 	base += lipgloss.NewStyle(). // Helper text to show the current route
 					Foreground(lipgloss.Color("#616161")).
-					Render(fmt.Sprintf("\nPath: %s", strings.Join(m.ViewStack, "/")))
+					Render(fmt.Sprintf("\nPath: %s", strings.Join(viewStack, "/")))
 	return base
 }
 
@@ -93,10 +95,10 @@ func (m *Router) handleQuit(msg tea.Msg) tea.Cmd {
 
 // Pops the last view off the stack and navigates to it
 func (m *Router) pop() {
-	if len(m.ViewStack) < 2 {
+	if len(viewStack) < 2 {
 		return
 	}
-	m.ViewStack = m.ViewStack[:len(m.ViewStack)-1]
+	viewStack = viewStack[:len(viewStack)-1]
 	m.setModel()
 }
 
@@ -127,8 +129,8 @@ func Push(view string) tea.Cmd {
 
 // Takes in a view and gets the appropriate model and pushes it to the router stack
 func (m *Router) pushModel(view string) {
-	if len(m.ViewStack) == 0 || m.ViewStack[len(m.ViewStack)-1] != view {
-		m.ViewStack = append(m.ViewStack, view)
+	if len(viewStack) == 0 || viewStack[len(viewStack)-1] != view {
+		viewStack = append(viewStack, view)
 	}
 	m.setModel()
 }
@@ -150,15 +152,13 @@ func Replace(view string) tea.Cmd {
 
 // Takes in a view and gets the appropriate model and replaces the current one
 func (m *Router) replaceModel(view string) {
-	m.ViewStack[len(m.ViewStack)-1] = view
+	viewStack[len(viewStack)-1] = view
 	m.setModel()
 }
 
-/*
-The RouterParamsMsg can be used to pass data to the main route or it's children
-by way of a message containing parsed URL values.
-E.g some/route?foo=bar or /some/bare/route are both valid.
-*/
+// The RouterParamsMsg can be used to pass data to the main route or it's children
+// by way of a message containing parsed URL values.
+// E.g some/route?foo=bar or /some/bare/route are both valid.
 type RouterParamsMsg struct {
 	Params url.Values
 }
@@ -171,9 +171,21 @@ func (m *Router) setRouterParams(vals url.Values) tea.Cmd {
 	}
 }
 
+// Provides the current url values parsed from the top route. Can be called
+// by components to get the params
+func GetParams() url.Values {
+	return parseQuery(viewStack[len(viewStack)-1])
+}
+
+// Provides a specific url parameter from the top route
+func GetParam(val string) string {
+	queries := parseQuery(viewStack[len(viewStack)-1])
+	return queries.Get(val)
+}
+
 // Sets the model in the router based on the last view in the view stack
 func (m *Router) setModel() {
-	view := m.ViewStack[len(m.ViewStack)-1]
+	view := viewStack[len(viewStack)-1]
 	splitView := strings.Split(view, "?")
 	modelName := splitView[0]
 	m.Model = m.Views[modelName]
