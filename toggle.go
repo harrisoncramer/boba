@@ -74,7 +74,7 @@ func (m ToggleModel) View() string {
 	if m.on {
 		base += m.theme.Color("Yes", Success)
 	} else {
-		base += m.theme.Color("No", Danger)
+		base += m.theme.Color("No", Neutral)
 	}
 
 	base += "\n"
