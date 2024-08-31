@@ -33,7 +33,7 @@ func (loader *LoadingModel) updateLoading(msg tea.Msg, cmds *[]tea.Cmd) spinner.
 		if loader.loading {
 			loader.spinner = UpdateSubmodel(loader.spinner, msg, cmds)
 		}
-	case MultiSelectorOptionMsg, SelectorOptionsMsg, errMsg:
+	case MultiSelectorOptionsMsg, SelectorOptionsMsg, errMsg:
 		loader.loading = false
 	}
 

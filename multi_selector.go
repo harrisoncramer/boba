@@ -34,6 +34,7 @@ type MultiSelectorModel struct {
 	name           string
 	maxHeight      func() int
 	truncated      bool
+	LoadingModel
 }
 
 type NewMultiSelectorModelOpts struct {
@@ -54,6 +55,7 @@ func NewMultiSelectorModel(opts NewMultiSelectorModelOpts) MultiSelectorModel {
 		theme:          opts.Theme,
 		maxHeight:      opts.MaxHeight,
 		keys:           opts.Keys,
+		LoadingModel:   NewLoadingModel(),
 	}
 
 	if !opts.Filter.Hidden {
@@ -79,6 +81,7 @@ func (m MultiSelectorModel) Update(msg tea.Msg) (MultiSelectorModel, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	m.filter = UpdateSubmodel(m.filter, msg, &cmds)
+	m.spinner = m.updateLoading(msg, &cmds)
 
 	switch msg := msg.(type) {
 	case unselectAllMsg:
@@ -116,6 +119,9 @@ func (m MultiSelectorModel) Update(msg tea.Msg) (MultiSelectorModel, tea.Cmd) {
 }
 
 func (m MultiSelectorModel) View() string {
+	if m.loading {
+		return fmt.Sprintf("\n%s\n", m.spinner.View())
+	}
 	base := strings.Builder{}
 	base.WriteString(rebuildCursor(m.filter.View(), m.filter.Focused(), m.theme))
 	if len(m.visibleOptions) == 0 {
