@@ -45,22 +45,18 @@ func (m Router) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 	}
 
-	switch msg := msg.(type) {
 	// When a component triggers a view change we set the new model
 	// and then set router params. This RouterParamsMsg can be detected by components
 	// that need query parameters, or other data
+	switch msg := msg.(type) {
 	case pushViewMsg:
 		m.pushModel(msg.view)
-		var cmds []tea.Cmd
-		cmds = append(cmds, m.setRouterParams(msg.query), m.Model.Init())
-		return m, tea.Sequence(cmds...)
+		return m, m.Model.Init()
 	case replaceViewMsg:
 		m.replaceModel(msg.view)
-		var cmds []tea.Cmd
-		cmds = append(cmds, m.setRouterParams(msg.query), m.Model.Init())
-		return m, tea.Sequence(cmds...)
+		return m, m.Model.Init()
 	case popMsg:
-		m.pop()
+		m.popModel()
 		return m, m.Model.Init()
 	}
 
@@ -94,7 +90,7 @@ func (m *Router) handleQuit(msg tea.Msg) tea.Cmd {
 }
 
 // Pops the last view off the stack and navigates to it
-func (m *Router) pop() {
+func (m *Router) popModel() {
 	if len(viewStack) < 2 {
 		return
 	}
@@ -156,21 +152,6 @@ func (m *Router) replaceModel(view string) {
 	m.setModel()
 }
 
-// The RouterParamsMsg can be used to pass data to the main route or it's children
-// by way of a message containing parsed URL values.
-// E.g some/route?foo=bar or /some/bare/route are both valid.
-type RouterParamsMsg struct {
-	Params url.Values
-}
-
-// Fires when the view is changed. This method fires the
-// RouterParamsMsg which can be handled by submodels to get route parameters
-func (m *Router) setRouterParams(vals url.Values) tea.Cmd {
-	return func() tea.Msg {
-		return RouterParamsMsg{vals}
-	}
-}
-
 // Provides the current url values parsed from the top route. Can be called
 // by components to get the params
 func GetParams() url.Values {
@@ -181,6 +162,33 @@ func GetParams() url.Values {
 func GetParam(val string) string {
 	queries := parseQuery(viewStack[len(viewStack)-1])
 	return queries.Get(val)
+}
+
+// The message triggered when a router parameter has changed
+type RouterParamChangedMsg struct {
+	Key   string
+	Value string
+}
+
+// Provides the ability to change url parameters on the fly within components
+func SetParam(key string, val string) tea.Cmd {
+	return func() tea.Msg {
+		view := viewStack[len(viewStack)-1]
+		query := parseQuery(view)
+		if query == nil {
+			viewStack[len(viewStack)-1] = fmt.Sprintf("%s?%s=%s", view, key, val)
+			return nil
+		}
+		query.Set(key, val)
+		log.Printf("Query is %s", query.Encode())
+		newQuery := query.Encode()
+		baseView := strings.Split(view, "?")[0] // TODO: Nested views with query params
+		viewStack[len(viewStack)-1] = fmt.Sprintf("%s?%s", baseView, newQuery)
+		return RouterParamChangedMsg{
+			Key:   key,
+			Value: val,
+		}
+	}
 }
 
 // Sets the model in the router based on the last view in the view stack
@@ -202,5 +210,6 @@ func parseQuery(view string) url.Values {
 	if err != nil {
 		log.Fatalf("Error parsing path %v", err)
 	}
+
 	return queryVals
 }
