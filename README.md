@@ -2,6 +2,8 @@
 
 This is my component library for BubbleTea.
 
+It is a work in progress. Please do not use this library in your own projects (yet)!
+
 ## Usage
 
 Install the package:
