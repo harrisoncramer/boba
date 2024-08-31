@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -174,14 +175,13 @@ type RouterParamChangedMsg struct {
 func SetParam(key string, val string) tea.Cmd {
 	return func() tea.Msg {
 		view := viewStack[len(viewStack)-1]
-		query := parseQuery(view)
-		if query == nil {
+		queryString := parseQuery(view)
+		if queryString == nil {
 			viewStack[len(viewStack)-1] = fmt.Sprintf("%s?%s=%s", view, key, val)
 			return nil
 		}
-		query.Set(key, val)
-		log.Printf("Query is %s", query.Encode())
-		newQuery := query.Encode()
+		queryString.Set(key, val)
+		newQuery := queryString.Encode()
 		baseView := strings.Split(view, "?")[0] // TODO: Nested views with query params
 		viewStack[len(viewStack)-1] = fmt.Sprintf("%s?%s", baseView, newQuery)
 		return RouterParamChangedMsg{
@@ -194,22 +194,41 @@ func SetParam(key string, val string) tea.Cmd {
 // Sets the model in the router based on the last view in the view stack
 func (m *Router) setModel() {
 	view := viewStack[len(viewStack)-1]
+
+	if m.Views[view] != nil {
+		m.Model = m.Views[view]
+		return
+	}
+
 	splitView := strings.Split(view, "?")
 	modelName := splitView[0]
-	m.Model = m.Views[modelName]
+	if m.Views[modelName] != nil {
+		m.Model = m.Views[modelName]
+		return
+	}
+
+	log.Printf("Could not find model for view %s\n", view)
+	os.Exit(1)
 }
 
 // Parses the query values in the view string into url.Values
 func parseQuery(view string) url.Values {
-	path := strings.Split(view, "?")
-	if len(path) == 1 {
+	queryString := getLastQueryString(view)
+	if queryString == "" {
 		return nil
 	}
-	query := path[1]
-	queryVals, err := url.ParseQuery(query)
+	queryVals, err := url.ParseQuery(queryString)
 	if err != nil {
 		log.Fatalf("Error parsing path %v", err)
 	}
 
 	return queryVals
+}
+
+func getLastQueryString(view string) string {
+	idx := strings.LastIndex(view, "?")
+	if idx == -1 {
+		return ""
+	}
+	return view[idx+1:]
 }

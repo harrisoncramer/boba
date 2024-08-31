@@ -82,3 +82,12 @@ func UpdateSubmodel[T any](m Updater[T], msg tea.Msg, cmds *[]tea.Cmd) T {
 	*cmds = append(*cmds, cmd)
 	return u
 }
+
+type errMsg struct{ err error }
+
+func (e errMsg) Error() string { return e.err.Error() }
+
+// Message used to set loading state in the model
+type loadingMsg struct {
+	Options SelectorOptions
+}
