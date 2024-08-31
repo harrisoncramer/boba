@@ -23,11 +23,11 @@ type SelectorModel struct {
 	options        SelectorOptions
 	visibleOptions SelectorOptions
 	filter         textinput.Model
-	keys           shared.KeyOpts
 	theme          Theme
 	name           string
 	maxHeight      func() int
 	truncated      bool
+	keys           KeyOpts
 }
 
 type NewSelectorModelOpts struct {
@@ -36,6 +36,7 @@ type NewSelectorModelOpts struct {
 	Theme     Theme
 	Name      string
 	MaxHeight func() int
+	Keys      KeyOpts
 }
 
 // Allows for the selection of a single value among a list of options.
@@ -46,6 +47,7 @@ func NewSelectorModel(opts NewSelectorModelOpts) SelectorModel {
 		visibleOptions: opts.Options,
 		theme:          opts.Theme,
 		maxHeight:      opts.MaxHeight,
+		keys:           opts.Keys,
 	}
 
 	if !opts.Filter.Hidden {
@@ -68,27 +70,27 @@ type SelectorOptionsMsg struct {
 func (m SelectorModel) Update(msg tea.Msg) (SelectorModel, tea.Cmd) {
 	var cmds []tea.Cmd
 
-	m.filter = shared.UpdateSubmodel(m.filter, msg, &cmds)
+	m.filter = UpdateSubmodel(m.filter, msg, &cmds)
 
 	switch msg := msg.(type) {
 	case SelectorOptionsMsg:
 		m.setOptions(msg.Options)
 	case tea.KeyMsg:
 		switch msg.String() {
-		case KeyOpts.Down:
+		case m.keys.Down:
 			m.move(Down)
-		case KeyOpts.Up:
+		case m.keys.Up:
 			m.move(Up)
-		case KeyOpts.Select:
+		case m.keys.Select:
 			if !m.filter.Focused() {
 				return m, m.selectVal
 			} else {
 				m.filter.Blur()
 			}
-		case KeyOpts.Filter:
+		case m.keys.Filter:
 			cmds = append(cmds, textinput.Blink)
 			m.filter.Focus()
-		case KeyOpts.Back:
+		case m.keys.Back:
 			if m.filter.Focused() {
 				m.filter.Blur()
 				return m, nil
@@ -129,7 +131,7 @@ func (m SelectorModel) View() string {
 			base.WriteString(fmt.Sprintf("%s\n", m.theme.Color(option.Label, color)))
 		}
 		if m.truncated {
-			base.WriteString(m.theme.Color(fmt.Sprintf("  Results limited, use %s to search...\n", KeyOpts.Filter), Neutral))
+			base.WriteString(m.theme.Color(fmt.Sprintf("  Results limited, use %s to search...\n", m.keys.Filter), Neutral))
 		}
 	}
 

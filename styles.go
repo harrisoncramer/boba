@@ -6,6 +6,14 @@ import (
 
 type ColorType string
 
+type Colors struct {
+	Danger    string
+	Success   string
+	Neutral   string
+	Primary   string
+	Secondary string
+}
+
 // Possible types of colors
 const (
 	Success   ColorType = "Success"
@@ -19,7 +27,7 @@ const (
 type Theme map[ColorType]lipgloss.Style
 
 // Creates a new theme for the components with overrideable defaults
-func NewTheme(overrides shared.Colors) Theme {
+func NewTheme(overrides Colors) Theme {
 	defaultColors := map[ColorType]string{
 		Primary:   "#78A7D8",
 		Secondary: "#FFA066",

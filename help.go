@@ -31,7 +31,7 @@ func (m HelpModel) Update(msg tea.Msg) (HelpModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case KeyOpts.Help:
+		case m.keys.Help.Help().Key:
 			m.help.ShowAll = !m.help.ShowAll
 		}
 	}
@@ -58,50 +58,50 @@ type keyMap struct {
 
 func NewKeys(keys ...string) keyMap {
 	var m keyMap
-	for _, k := range keys {
-		switch k {
-		case KeyOpts.Back:
-			m.Back = key.NewBinding(
-				key.WithKeys(KeyOpts.Back),
-				key.WithHelp(KeyOpts.Back, "back"),
-			)
-		case KeyOpts.Quit:
-			m.Quit = key.NewBinding(
-				key.WithKeys(KeyOpts.Quit),
-				key.WithHelp(KeyOpts.Quit, "quit"),
-			)
-		case KeyOpts.Help:
-			m.Help = key.NewBinding(
-				key.WithKeys(KeyOpts.Help),
-				key.WithHelp(KeyOpts.Help, "help"),
-			)
-		case KeyOpts.Select:
-			m.Select = key.NewBinding(
-				key.WithKeys(KeyOpts.Select),
-				key.WithHelp(KeyOpts.Select, "select/submit"),
-			)
-		case KeyOpts.Toggle:
-			m.Toggle = key.NewBinding(
-				key.WithKeys(KeyOpts.Toggle),
-				key.WithHelp(KeyOpts.Toggle, "toggle"),
-			)
-		case KeyOpts.Up:
-			m.Up = key.NewBinding(
-				key.WithKeys(KeyOpts.Up),
-				key.WithHelp(KeyOpts.Up, "up"),
-			)
-		case KeyOpts.Down:
-			m.Down = key.NewBinding(
-				key.WithKeys(KeyOpts.Down),
-				key.WithHelp(KeyOpts.Down, "down"),
-			)
-		case KeyOpts.Filter:
-			m.Filter = key.NewBinding(
-				key.WithKeys(KeyOpts.Filter),
-				key.WithHelp(KeyOpts.Filter, "filter"),
-			)
-		}
-	}
+	// for _, k := range keys {
+	// 	switch k {
+	// 	case m.Back:
+	// 		m.Back = key.NewBinding(
+	// 			key.WithKeys(m.keys.Back),
+	// 			key.WithHelp(m.keys.Back, "back"),
+	// 		)
+	// 	case m.keys.Quit:
+	// 		m.Quit = key.NewBinding(
+	// 			key.WithKeys(m.keys.Quit),
+	// 			key.WithHelp(m.keys.Quit, "quit"),
+	// 		)
+	// 	case m.keys.Help:
+	// 		m.Help = key.NewBinding(
+	// 			key.WithKeys(m.keys.Help),
+	// 			key.WithHelp(m.keys.Help, "help"),
+	// 		)
+	// 	case m.keys.Select:
+	// 		m.Select = key.NewBinding(
+	// 			key.WithKeys(m.keys.Select),
+	// 			key.WithHelp(m.keys.Select, "select/submit"),
+	// 		)
+	// 	case m.keys.Toggle:
+	// 		m.Toggle = key.NewBinding(
+	// 			key.WithKeys(m.keys.Toggle),
+	// 			key.WithHelp(m.keys.Toggle, "toggle"),
+	// 		)
+	// 	case m.keys.Up:
+	// 		m.Up = key.NewBinding(
+	// 			key.WithKeys(m.keys.Up),
+	// 			key.WithHelp(m.keys.Up, "up"),
+	// 		)
+	// 	case m.keys.Down:
+	// 		m.Down = key.NewBinding(
+	// 			key.WithKeys(m.keys.Down),
+	// 			key.WithHelp(m.keys.Down, "down"),
+	// 		)
+	// 	case m.keys.Filter:
+	// 		m.Filter = key.NewBinding(
+	// 			key.WithKeys(m.keys.Filter),
+	// 			key.WithHelp(m.keys.Filter, "filter"),
+	// 		)
+	// 	}
+	// }
 	return m
 }
 

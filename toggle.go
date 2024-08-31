@@ -14,6 +14,7 @@ type ToggleModel struct {
 	noUp    bool
 	noDown  bool
 	theme   Theme
+	keys    KeyOpts
 }
 
 type NewToggleOptions struct {
@@ -22,6 +23,7 @@ type NewToggleOptions struct {
 	NoDown bool
 	NoUp   bool
 	Theme  Theme
+	Keys   KeyOpts
 }
 
 // Allows for turning a boolean value true/false, and adheres to the ComponentModel
@@ -34,6 +36,7 @@ func NewToggleModel(opts NewToggleOptions) ComponentModel {
 		noDown: opts.NoDown,
 		noUp:   opts.NoUp,
 		theme:  opts.Theme,
+		keys:   opts.Keys,
 	}
 }
 
@@ -48,14 +51,14 @@ func (m ToggleModel) Update(msg tea.Msg) (ComponentModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case KeyOpts.Toggle:
+		case m.keys.Toggle:
 			m.on = !m.on
-		case KeyOpts.Up:
+		case m.keys.Up:
 			if m.Focused() && !m.noUp {
 				m.Blur()
 				return &m, back(m.name)
 			}
-		case KeyOpts.Down:
+		case m.keys.Down:
 			if m.Focused() && !m.noDown {
 				m.Blur()
 				return &m, next(m.name)

@@ -85,16 +85,16 @@ func (m MultiSelectorModel) Update(msg tea.Msg) (MultiSelectorModel, tea.Cmd) {
 		m.setOptions(msg.Options)
 	case tea.KeyMsg:
 		switch msg.String() {
-		case KeyOpts.Down:
+		case m.keys.Down:
 			m.move(Down)
-		case KeyOpts.Up:
+		case m.keys.Up:
 			m.move(Up)
-		case KeyOpts.Toggle:
+		case m.keys.Toggle:
 			cmds = append(cmds, m.toggleVal)
-		case KeyOpts.Filter:
+		case m.keys.Filter:
 			cmds = append(cmds, textinput.Blink)
 			m.filter.Focus()
-		case KeyOpts.Back:
+		case m.keys.Back:
 			if m.filter.Focused() {
 				m.filter.Blur()
 				return m, nil
@@ -142,7 +142,7 @@ func (m MultiSelectorModel) View() string {
 		}
 
 		if m.truncated {
-			base.WriteString(m.theme.Color(fmt.Sprintf("  Results limited, use %s to search...\n", KeyOpts.Filter), Neutral))
+			base.WriteString(m.theme.Color(fmt.Sprintf("  Results limited, use %s to search...\n", m.keys.Filter), Neutral))
 		}
 	}
 	return base.String()
