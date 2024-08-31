@@ -1,4 +1,4 @@
-package components
+package boba
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/harrisoncramer/cbcli/shared"
 )
 
 type SelectorOption struct {
@@ -76,20 +75,20 @@ func (m SelectorModel) Update(msg tea.Msg) (SelectorModel, tea.Cmd) {
 		m.setOptions(msg.Options)
 	case tea.KeyMsg:
 		switch msg.String() {
-		case shared.PluginOptions.Keys.Down:
+		case KeyOpts.Down:
 			m.move(Down)
-		case shared.PluginOptions.Keys.Up:
+		case KeyOpts.Up:
 			m.move(Up)
-		case shared.PluginOptions.Keys.Select:
+		case KeyOpts.Select:
 			if !m.filter.Focused() {
 				return m, m.selectVal
 			} else {
 				m.filter.Blur()
 			}
-		case shared.PluginOptions.Keys.Filter:
+		case KeyOpts.Filter:
 			cmds = append(cmds, textinput.Blink)
 			m.filter.Focus()
-		case shared.PluginOptions.Keys.Back:
+		case KeyOpts.Back:
 			if m.filter.Focused() {
 				m.filter.Blur()
 				return m, nil
@@ -130,7 +129,7 @@ func (m SelectorModel) View() string {
 			base.WriteString(fmt.Sprintf("%s\n", m.theme.Color(option.Label, color)))
 		}
 		if m.truncated {
-			base.WriteString(m.theme.Color(fmt.Sprintf("  Results limited, use %s to search...\n", shared.PluginOptions.Keys.Filter), Neutral))
+			base.WriteString(m.theme.Color(fmt.Sprintf("  Results limited, use %s to search...\n", KeyOpts.Filter), Neutral))
 		}
 	}
 

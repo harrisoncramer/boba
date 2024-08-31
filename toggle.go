@@ -1,10 +1,9 @@
-package components
+package boba
 
 import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/harrisoncramer/cbcli/shared"
 )
 
 type ToggleModel struct {
@@ -49,14 +48,14 @@ func (m ToggleModel) Update(msg tea.Msg) (ComponentModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case shared.PluginOptions.Keys.Toggle:
+		case KeyOpts.Toggle:
 			m.on = !m.on
-		case shared.PluginOptions.Keys.Up:
+		case KeyOpts.Up:
 			if m.Focused() && !m.noUp {
 				m.Blur()
 				return &m, back(m.name)
 			}
-		case shared.PluginOptions.Keys.Down:
+		case KeyOpts.Down:
 			if m.Focused() && !m.noDown {
 				m.Blur()
 				return &m, next(m.name)

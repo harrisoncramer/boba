@@ -1,4 +1,4 @@
-package components
+package boba
 
 import (
 	"fmt"
@@ -8,7 +8,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/harrisoncramer/cbcli/shared"
 )
 
 type HelpModel struct {
@@ -32,7 +31,7 @@ func (m HelpModel) Update(msg tea.Msg) (HelpModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case shared.PluginOptions.Keys.Help:
+		case KeyOpts.Help:
 			m.help.ShowAll = !m.help.ShowAll
 		}
 	}
@@ -61,45 +60,45 @@ func NewKeys(keys ...string) keyMap {
 	var m keyMap
 	for _, k := range keys {
 		switch k {
-		case shared.PluginOptions.Keys.Back:
+		case KeyOpts.Back:
 			m.Back = key.NewBinding(
-				key.WithKeys(shared.PluginOptions.Keys.Back),
-				key.WithHelp(shared.PluginOptions.Keys.Back, "back"),
+				key.WithKeys(KeyOpts.Back),
+				key.WithHelp(KeyOpts.Back, "back"),
 			)
-		case shared.PluginOptions.Keys.Quit:
+		case KeyOpts.Quit:
 			m.Quit = key.NewBinding(
-				key.WithKeys(shared.PluginOptions.Keys.Quit),
-				key.WithHelp(shared.PluginOptions.Keys.Quit, "quit"),
+				key.WithKeys(KeyOpts.Quit),
+				key.WithHelp(KeyOpts.Quit, "quit"),
 			)
-		case shared.PluginOptions.Keys.Help:
+		case KeyOpts.Help:
 			m.Help = key.NewBinding(
-				key.WithKeys(shared.PluginOptions.Keys.Help),
-				key.WithHelp(shared.PluginOptions.Keys.Help, "help"),
+				key.WithKeys(KeyOpts.Help),
+				key.WithHelp(KeyOpts.Help, "help"),
 			)
-		case shared.PluginOptions.Keys.Select:
+		case KeyOpts.Select:
 			m.Select = key.NewBinding(
-				key.WithKeys(shared.PluginOptions.Keys.Select),
-				key.WithHelp(shared.PluginOptions.Keys.Select, "select/submit"),
+				key.WithKeys(KeyOpts.Select),
+				key.WithHelp(KeyOpts.Select, "select/submit"),
 			)
-		case shared.PluginOptions.Keys.Toggle:
+		case KeyOpts.Toggle:
 			m.Toggle = key.NewBinding(
-				key.WithKeys(shared.PluginOptions.Keys.Toggle),
-				key.WithHelp(shared.PluginOptions.Keys.Toggle, "toggle"),
+				key.WithKeys(KeyOpts.Toggle),
+				key.WithHelp(KeyOpts.Toggle, "toggle"),
 			)
-		case shared.PluginOptions.Keys.Up:
+		case KeyOpts.Up:
 			m.Up = key.NewBinding(
-				key.WithKeys(shared.PluginOptions.Keys.Up),
-				key.WithHelp(shared.PluginOptions.Keys.Up, "up"),
+				key.WithKeys(KeyOpts.Up),
+				key.WithHelp(KeyOpts.Up, "up"),
 			)
-		case shared.PluginOptions.Keys.Down:
+		case KeyOpts.Down:
 			m.Down = key.NewBinding(
-				key.WithKeys(shared.PluginOptions.Keys.Down),
-				key.WithHelp(shared.PluginOptions.Keys.Down, "down"),
+				key.WithKeys(KeyOpts.Down),
+				key.WithHelp(KeyOpts.Down, "down"),
 			)
-		case shared.PluginOptions.Keys.Filter:
+		case KeyOpts.Filter:
 			m.Filter = key.NewBinding(
-				key.WithKeys(shared.PluginOptions.Keys.Filter),
-				key.WithHelp(shared.PluginOptions.Keys.Filter, "filter"),
+				key.WithKeys(KeyOpts.Filter),
+				key.WithHelp(KeyOpts.Filter, "filter"),
 			)
 		}
 	}

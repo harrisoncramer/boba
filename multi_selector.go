@@ -1,4 +1,4 @@
-package components
+package boba
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/harrisoncramer/cbcli/shared"
 )
 
 // An individual option in the MultiSelectorModel
@@ -30,7 +29,7 @@ type MultiSelectorModel struct {
 	options        MultiSelectorOptions
 	visibleOptions MultiSelectorOptions
 	filter         textinput.Model
-	keys           shared.KeyOpts
+	keys           KeyOpts
 	theme          Theme
 	name           string
 	maxHeight      func() int
@@ -77,7 +76,7 @@ func (m MultiSelectorModel) Init() tea.Cmd {
 func (m MultiSelectorModel) Update(msg tea.Msg) (MultiSelectorModel, tea.Cmd) {
 	var cmds []tea.Cmd
 
-	m.filter = shared.UpdateSubmodel(m.filter, msg, &cmds)
+	m.filter = UpdateSubmodel(m.filter, msg, &cmds)
 
 	switch msg := msg.(type) {
 	case unselectAllMsg:
@@ -86,16 +85,16 @@ func (m MultiSelectorModel) Update(msg tea.Msg) (MultiSelectorModel, tea.Cmd) {
 		m.setOptions(msg.Options)
 	case tea.KeyMsg:
 		switch msg.String() {
-		case shared.PluginOptions.Keys.Down:
+		case KeyOpts.Down:
 			m.move(Down)
-		case shared.PluginOptions.Keys.Up:
+		case KeyOpts.Up:
 			m.move(Up)
-		case shared.PluginOptions.Keys.Toggle:
+		case KeyOpts.Toggle:
 			cmds = append(cmds, m.toggleVal)
-		case shared.PluginOptions.Keys.Filter:
+		case KeyOpts.Filter:
 			cmds = append(cmds, textinput.Blink)
 			m.filter.Focus()
-		case shared.PluginOptions.Keys.Back:
+		case KeyOpts.Back:
 			if m.filter.Focused() {
 				m.filter.Blur()
 				return m, nil
@@ -143,7 +142,7 @@ func (m MultiSelectorModel) View() string {
 		}
 
 		if m.truncated {
-			base.WriteString(m.theme.Color(fmt.Sprintf("  Results limited, use %s to search...\n", shared.PluginOptions.Keys.Filter), Neutral))
+			base.WriteString(m.theme.Color(fmt.Sprintf("  Results limited, use %s to search...\n", KeyOpts.Filter), Neutral))
 		}
 	}
 	return base.String()

@@ -1,4 +1,4 @@
-package components
+package boba
 
 import (
 	tea "github.com/charmbracelet/bubbletea"

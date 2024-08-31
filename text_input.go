@@ -1,9 +1,8 @@
-package components
+package boba
 
 import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/harrisoncramer/cbcli/shared"
 )
 
 type TextInputModel struct {
@@ -12,6 +11,7 @@ type TextInputModel struct {
 	input  textinput.Model
 	noUp   bool
 	noDown bool
+	keys   KeyOpts
 }
 
 type NewTextInputOptions struct {
@@ -20,6 +20,7 @@ type NewTextInputOptions struct {
 	Id          string
 	Placeholder string
 	Theme       Theme
+	Keys        KeyOpts
 }
 
 // Wrapper around the textinput model from BubbleTea. Extended to handle focusing and
@@ -31,6 +32,7 @@ func NewTextInputModel(opts NewTextInputOptions, models ...textinput.Model) Comp
 		noUp:   opts.NoUp,
 		noDown: opts.NoDown,
 		theme:  opts.Theme,
+		keys:   opts.Keys,
 	}
 	ti.input.Placeholder = opts.Placeholder
 	return &ti
@@ -43,22 +45,22 @@ func (m TextInputModel) Init() tea.Cmd {
 func (m TextInputModel) Update(msg tea.Msg) (ComponentModel, tea.Cmd) {
 	var cmds = []tea.Cmd{}
 
-	m.input = shared.UpdateSubmodel(m.input, msg, &cmds)
+	m.input = UpdateSubmodel(m.input, msg, &cmds)
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case shared.PluginOptions.Keys.Up:
+		case m.keys.Up:
 			if m.Focused() && !m.noUp {
 				m.Blur()
 				return &m, back(m.id)
 			}
-		case shared.PluginOptions.Keys.Down:
+		case m.keys.Down:
 			if m.Focused() && !m.noDown {
 				m.Blur()
 				return &m, next(m.id)
 			}
-		case shared.PluginOptions.Keys.Back:
+		case m.keys.Back:
 			m.Blur()
 			return &m, nil
 		}

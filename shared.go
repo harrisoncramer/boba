@@ -1,4 +1,4 @@
-package components
+package boba
 
 import (
 	"strings"
@@ -70,4 +70,15 @@ func rebuildCursor(rawString string, focused bool, theme Theme) string {
 	base.WriteString("\n")
 
 	return base.String()
+}
+
+type Updater[T any] interface {
+	Update(tea.Msg) (T, tea.Cmd)
+}
+
+// Updates the model's internal state and returns any commands from the update call
+func UpdateSubmodel[T any](m Updater[T], msg tea.Msg, cmds *[]tea.Cmd) T {
+	u, cmd := m.Update(msg)
+	*cmds = append(*cmds, cmd)
+	return u
 }

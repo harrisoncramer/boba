@@ -1,8 +1,7 @@
-package components
+package boba
 
 import (
 	"github.com/charmbracelet/lipgloss"
-	"github.com/harrisoncramer/cbcli/shared"
 )
 
 type ColorType string
