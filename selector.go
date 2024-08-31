@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -29,8 +28,7 @@ type SelectorModel struct {
 	maxHeight      func() int
 	truncated      bool
 	keys           KeyOpts
-	spinner        spinner.Model
-	loading        bool
+	LoadingModel
 }
 
 type NewSelectorModelOpts struct {
@@ -51,7 +49,7 @@ func NewSelectorModel(opts NewSelectorModelOpts) SelectorModel {
 		theme:          opts.Theme,
 		maxHeight:      opts.MaxHeight,
 		keys:           opts.Keys,
-		spinner:        spinner.New(),
+		LoadingModel:   NewLoadingModel(),
 	}
 
 	if !opts.Filter.Hidden {
@@ -117,11 +115,9 @@ func (m SelectorModel) Update(msg tea.Msg) (SelectorModel, tea.Cmd) {
 }
 
 func (m SelectorModel) View() string {
-
 	if m.loading {
 		return fmt.Sprintf("\n%s\n", m.spinner.View())
 	}
-
 	base := strings.Builder{}
 	base.WriteString(rebuildCursor(m.filter.View(), m.filter.Focused(), m.theme))
 	if len(m.visibleOptions) == 0 {
@@ -208,33 +204,4 @@ func (m *SelectorModel) selectVal() tea.Msg {
 		return SelectMsg{m.options[i]}
 	}
 	return nil
-}
-
-// Message used to set loading state in the model
-type LoadingMsg struct {
-	Options SelectorOptions
-}
-
-// Command to cause the selector to enter a loading state, which is exited when options are set or an error occurs
-func (m SelectorModel) Load() tea.Msg {
-	if !m.loading {
-		return LoadingMsg{}
-	}
-	return nil
-}
-
-func (m *SelectorModel) updateLoading(msg tea.Msg, cmds *[]tea.Cmd) spinner.Model {
-	switch msg := msg.(type) {
-	case LoadingMsg:
-		m.loading = true
-		*cmds = append(*cmds, m.spinner.Tick)
-	case spinner.TickMsg:
-		if m.loading {
-			m.spinner = UpdateSubmodel(m.spinner, msg, cmds)
-		}
-	case SelectorOptionsMsg, errMsg:
-		m.loading = false
-	}
-
-	return m.spinner
 }
