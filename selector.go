@@ -72,34 +72,15 @@ type SelectorOptionsMsg struct {
 	Options SelectorOptions
 }
 
-// Used to set loading state in the model
-type SelectorLoadingMsg struct {
-	Options SelectorOptions
-}
-
 func (m SelectorModel) Update(msg tea.Msg) (SelectorModel, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	m.filter = UpdateSubmodel(m.filter, msg, &cmds)
+	m.spinner = m.updateLoading(msg, &cmds)
 
 	switch msg := msg.(type) {
-	case SelectorLoadingMsg:
-		m.loading = true
-		cmds = append(cmds, m.spinner.Tick)
 	case SelectorOptionsMsg:
-		m.loading = false
 		m.setOptions(msg.Options)
-	case errMsg:
-		m.loading = false
-		if m.loading {
-			var cmd tea.Cmd
-			m.spinner, cmd = m.spinner.Update(msg)
-			cmds = append(cmds, cmd)
-		}
-	case spinner.TickMsg:
-		if m.loading {
-			m.spinner = UpdateSubmodel(m.spinner, msg, &cmds)
-		}
 	case tea.KeyMsg:
 		switch msg.String() {
 		case m.keys.Down:
@@ -229,9 +210,31 @@ func (m *SelectorModel) selectVal() tea.Msg {
 	return nil
 }
 
+// Message used to set loading state in the model
+type LoadingMsg struct {
+	Options SelectorOptions
+}
+
+// Command to cause the selector to enter a loading state, which is exited when options are set or an error occurs
 func (m SelectorModel) Load() tea.Msg {
 	if !m.loading {
-		return SelectorLoadingMsg{}
+		return LoadingMsg{}
 	}
 	return nil
+}
+
+func (m *SelectorModel) updateLoading(msg tea.Msg, cmds *[]tea.Cmd) spinner.Model {
+	switch msg := msg.(type) {
+	case LoadingMsg:
+		m.loading = true
+		*cmds = append(*cmds, m.spinner.Tick)
+	case spinner.TickMsg:
+		if m.loading {
+			m.spinner = UpdateSubmodel(m.spinner, msg, cmds)
+		}
+	case SelectorOptionsMsg, errMsg:
+		m.loading = false
+	}
+
+	return m.spinner
 }
