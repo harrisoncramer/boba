@@ -156,7 +156,7 @@ func (m *SelectorModel) filterOptions() {
 	}
 
 	// If we have exceeded the max height, trim our results
-	if m.maxHeight != nil {
+	if m.maxHeight != nil && len(visibleOptions) > 0 {
 		h := m.maxHeight() - 2 // Include the height of the filter input
 		if len(visibleOptions) > h {
 			visibleOptions = visibleOptions[:h]
