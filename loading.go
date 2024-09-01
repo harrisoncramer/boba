@@ -8,13 +8,13 @@ import (
 func NewLoadingModel() LoadingModel {
 	return LoadingModel{
 		Loading: false,
-		Spinner: spinner.New(),
+		Loader:  spinner.New(),
 	}
 }
 
 type LoadingModel struct {
 	Loading bool
-	Spinner spinner.Model
+	Loader  spinner.Model
 }
 
 func (loader *LoadingModel) Load() tea.Msg {
@@ -31,18 +31,18 @@ func (loader *LoadingModel) UpdateLoading(msg tea.Msg, cmds *[]tea.Cmd) spinner.
 	switch msg := msg.(type) {
 	case loadingMsg:
 		loader.Loading = true
-		*cmds = append(*cmds, loader.Spinner.Tick)
+		*cmds = append(*cmds, loader.Loader.Tick)
 	case spinner.TickMsg:
 		if loader.Loading {
-			loader.Spinner = UpdateSubmodel(loader.Spinner, msg, cmds)
+			loader.Loader = UpdateSubmodel(loader.Loader, msg, cmds)
 		}
 	case MultiSelectorOptionsMsg, SelectorOptionsMsg, SuccessMsg, ErrMsg:
 		loader.Loading = false
 	}
 
-	return loader.Spinner
+	return loader.Loader
 }
 
 func (m LoadingModel) View() string {
-	return m.Spinner.View()
+	return m.Loader.View()
 }
