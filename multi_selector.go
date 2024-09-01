@@ -81,7 +81,7 @@ func (m MultiSelectorModel) Update(msg tea.Msg) (MultiSelectorModel, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	m.filter = UpdateSubmodel(m.filter, msg, &cmds)
-	m.spinner = m.updateLoading(msg, &cmds)
+	m.Spinner = m.UpdateLoading(msg, &cmds)
 
 	switch msg := msg.(type) {
 	case unselectAllMsg:
@@ -119,8 +119,8 @@ func (m MultiSelectorModel) Update(msg tea.Msg) (MultiSelectorModel, tea.Cmd) {
 }
 
 func (m MultiSelectorModel) View() string {
-	if m.loading {
-		return fmt.Sprintf("\n%s\n", m.spinner.View())
+	if m.Loading {
+		return fmt.Sprintf("\n%s\n", m.Spinner.View())
 	}
 	base := strings.Builder{}
 	base.WriteString(rebuildCursor(m.filter.View(), m.filter.Focused(), m.theme))

@@ -74,7 +74,7 @@ func (m SelectorModel) Update(msg tea.Msg) (SelectorModel, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	m.filter = UpdateSubmodel(m.filter, msg, &cmds)
-	m.spinner = m.updateLoading(msg, &cmds)
+	m.Spinner = m.UpdateLoading(msg, &cmds)
 
 	switch msg := msg.(type) {
 	case SelectorOptionsMsg:
@@ -115,8 +115,8 @@ func (m SelectorModel) Update(msg tea.Msg) (SelectorModel, tea.Cmd) {
 }
 
 func (m SelectorModel) View() string {
-	if m.loading {
-		return fmt.Sprintf("\n%s\n", m.spinner.View())
+	if m.Loading {
+		return fmt.Sprintf("\n%s\n", m.Spinner.View())
 	}
 	base := strings.Builder{}
 	base.WriteString(rebuildCursor(m.filter.View(), m.filter.Focused(), m.theme))

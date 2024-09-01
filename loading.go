@@ -7,35 +7,42 @@ import (
 
 func NewLoadingModel() LoadingModel {
 	return LoadingModel{
-		loading: false,
-		spinner: spinner.New(),
+		Loading: false,
+		Spinner: spinner.New(),
 	}
 }
 
 type LoadingModel struct {
-	loading bool
-	spinner spinner.Model
+	Loading bool
+	Spinner spinner.Model
 }
 
 func (loader *LoadingModel) Load() tea.Msg {
-	if !loader.loading {
+	if !loader.Loading {
 		return loadingMsg{}
 	}
 	return nil
 }
 
-func (loader *LoadingModel) updateLoading(msg tea.Msg, cmds *[]tea.Cmd) spinner.Model {
+type SuccessMsg struct{ Msg string }
+type ErrMsg struct{ Err error }
+
+func (loader *LoadingModel) UpdateLoading(msg tea.Msg, cmds *[]tea.Cmd) spinner.Model {
 	switch msg := msg.(type) {
 	case loadingMsg:
-		loader.loading = true
-		*cmds = append(*cmds, loader.spinner.Tick)
+		loader.Loading = true
+		*cmds = append(*cmds, loader.Spinner.Tick)
 	case spinner.TickMsg:
-		if loader.loading {
-			loader.spinner = UpdateSubmodel(loader.spinner, msg, cmds)
+		if loader.Loading {
+			loader.Spinner = UpdateSubmodel(loader.Spinner, msg, cmds)
 		}
-	case MultiSelectorOptionsMsg, SelectorOptionsMsg:
-		loader.loading = false
+	case MultiSelectorOptionsMsg, SelectorOptionsMsg, SuccessMsg, ErrMsg:
+		loader.Loading = false
 	}
 
-	return loader.spinner
+	return loader.Spinner
+}
+
+func (m LoadingModel) View() string {
+	return m.Spinner.View()
 }

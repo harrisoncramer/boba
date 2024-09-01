@@ -18,23 +18,26 @@ type Views map[string]tea.Model
 var viewStack []string
 
 type Router struct {
-	Model   tea.Model
-	Views   Views
-	QuitKey string
+	Model       tea.Model
+	Views       Views
+	DefaultView string // View that is navigated to when "back" is called w/out a previous route
+	QuitKey     string
 }
 
 type NewRouterModelOpts struct {
-	View  string
-	Views Views
-	Quit  string
+	View        string
+	Views       Views
+	Quit        string
+	DefaultView string
 }
 
 // The Router is responsible for changing the top-level model in the application and triggering any route-based updates
 // Creates a new router that is responsible for handling navigation around the application via the changeView function
 func NewRouterModel(opts NewRouterModelOpts) tea.Model {
 	r := Router{
-		Views:   opts.Views,
-		QuitKey: opts.Quit,
+		Views:       opts.Views,
+		DefaultView: opts.DefaultView,
+		QuitKey:     opts.Quit,
 	}
 
 	r.pushModel(opts.View)
@@ -92,9 +95,17 @@ func (m *Router) handleQuit(msg tea.Msg) tea.Cmd {
 
 // Pops the last view off the stack and navigates to it
 func (m *Router) popModel() {
-	if len(viewStack) < 2 {
+	if len(viewStack) < 2 && m.DefaultView == "" {
 		return
 	}
+
+	// If a default view is provided and there is no previous view, then navigate to it
+	if len(viewStack) < 2 {
+		viewStack = []string{m.DefaultView}
+		m.setModel()
+		return
+	}
+
 	viewStack = viewStack[:len(viewStack)-1]
 	m.setModel()
 }
