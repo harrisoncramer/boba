@@ -4,7 +4,7 @@ This is my component library for BubbleTea.
 
 It is a work in progress. Please do not use this library in your own projects (yet)!
 
-## Usage
+## Component Usage
 
 Install the package:
 
@@ -86,3 +86,52 @@ func main() {
 	}
 }
 ```
+
+## Router Usage
+
+You can set up a router with various views and child routes like this:
+
+```go
+	router := router.NewRouterModel(router.NewRouterModelOpts{
+		View:        "root",
+		DefaultView: "root",
+		Quit:        shared.PluginOptions.Keys.Quit,
+		Views: router.Views{
+			{
+				Paths: []string{"root"},
+				Model: NewMainModel(),
+				Children: router.Views{
+					{
+						Paths: []string{"subview-1", "subview-1-alias"}, // Will match either route name
+						Model: NewSubview1(),
+					},
+					{
+						Paths: []string{"subview-2"},
+						Model: NewSubview2(),
+						Children: router.Views{
+							{
+								Paths: []string{"subview-3?foo=bar"},
+								Model: NewSubview3()
+							},
+							{
+								Paths: []string{"subview-4"},
+								Model: NewSubview4()
+							},
+						},
+                    },
+				},
+			},
+		},
+	})
+```
+
+And then to navigate around, you can use the methods exposed from the router package such as:
+
+```go
+router.Push("subview-1")
+router.Pop() // Navigates back to root
+router.Push("subview-3") // Directly navigate to subview 3, bypass parent
+router.GetParam("foo") // "bar"
+```
+
+This router does not support URL parameters (like :id), instead just encode that data into query parameters. Route matching is done on simple strings, not regular expressions.
