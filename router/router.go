@@ -4,15 +4,26 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"os"
+	"slices"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
+type View struct {
+	Paths    []string
+	Model    tea.Model
+	Children []View
+}
+
+func (v View) isMatch(path string) bool {
+	view := strings.Split(path, "?")[0] // TODO: Nested views with query params
+	return slices.Contains(v.Paths, view)
+}
+
 // List of all top-level models in the application
-type Views map[string]tea.Model
+type Views []View
 
 // The stack of views in the router
 var viewStack []string
@@ -102,12 +113,12 @@ func (m *Router) popModel() {
 	// If a default view is provided and there is no previous view, then navigate to it
 	if len(viewStack) < 2 {
 		viewStack = []string{m.DefaultView}
-		m.setModel()
+		m.setModel(m.DefaultView, m.Views)
 		return
 	}
 
 	viewStack = viewStack[:len(viewStack)-1]
-	m.setModel()
+	m.setModel(viewStack[len(viewStack)-1], m.Views)
 }
 
 // This message is fired when a model calls the Pop method
@@ -137,10 +148,8 @@ func Push(view string) tea.Cmd {
 
 // Takes in a view and gets the appropriate model and pushes it to the router stack
 func (m *Router) pushModel(view string) {
-	if len(viewStack) == 0 || viewStack[len(viewStack)-1] != view {
-		viewStack = append(viewStack, view)
-	}
-	m.setModel()
+	viewStack = append(viewStack, view)
+	m.setModel(view, m.Views)
 }
 
 // This message is fired when a model calls the Replace method
@@ -161,7 +170,7 @@ func Replace(view string) tea.Cmd {
 // Takes in a view and gets the appropriate model and replaces the current one
 func (m *Router) replaceModel(view string) {
 	viewStack[len(viewStack)-1] = view
-	m.setModel()
+	m.setModel(view, m.Views)
 }
 
 // Provides the current url values parsed from the top route. Can be called
@@ -174,6 +183,11 @@ func GetParams() url.Values {
 func GetParam(val string) string {
 	queries := parseQuery(viewStack[len(viewStack)-1])
 	return queries.Get(val)
+}
+
+// Returns the current route
+func GetRoute() string {
+	return viewStack[len(viewStack)-1]
 }
 
 // The message triggered when a router parameter has changed
@@ -202,24 +216,18 @@ func SetParam(key string, val string) tea.Cmd {
 	}
 }
 
-// Sets the model in the router based on the last view in the view stack
-func (m *Router) setModel() {
-	view := viewStack[len(viewStack)-1]
-
-	if m.Views[view] != nil {
-		m.Model = m.Views[view]
-		return
+// Depth first search of the router until it finds the matching route
+func (m *Router) setModel(view string, views Views) bool {
+	for _, v := range views {
+		if m.setModel(view, v.Children) {
+			return true
+		}
+		if v.isMatch(view) {
+			m.Model = v.Model
+			return true
+		}
 	}
-
-	splitView := strings.Split(view, "?")
-	modelName := splitView[0]
-	if m.Views[modelName] != nil {
-		m.Model = m.Views[modelName]
-		return
-	}
-
-	log.Printf("Could not find model for view %s\n", view)
-	os.Exit(1)
+	return false
 }
 
 // Parses the query values in the view string into url.Values

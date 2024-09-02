@@ -25,6 +25,7 @@ type SelectorModel struct {
 	filter         textinput.Model
 	theme          Theme
 	name           string
+	filterHidden   bool
 	maxHeight      func() int
 	truncated      bool
 	keys           KeyOpts
@@ -50,6 +51,7 @@ func NewSelectorModel(opts NewSelectorModelOpts) SelectorModel {
 		maxHeight:      opts.MaxHeight,
 		keys:           opts.Keys,
 		LoadingModel:   NewLoadingModel(),
+		filterHidden:   opts.Filter.Hidden,
 	}
 
 	if !opts.Filter.Hidden {
@@ -92,8 +94,10 @@ func (m SelectorModel) Update(msg tea.Msg) (SelectorModel, tea.Cmd) {
 				m.filter.Blur()
 			}
 		case m.keys.Filter:
-			cmds = append(cmds, textinput.Blink)
-			m.filter.Focus()
+			if !m.filterHidden {
+				cmds = append(cmds, textinput.Blink)
+				m.filter.Focus()
+			}
 		case m.keys.Back:
 			if m.filter.Focused() {
 				m.filter.Blur()
@@ -119,7 +123,9 @@ func (m SelectorModel) View() string {
 		return fmt.Sprintf("\n%s\n", m.Loader.View())
 	}
 	base := strings.Builder{}
-	base.WriteString(rebuildCursor(m.filter.View(), m.filter.Focused(), m.theme))
+	if !m.filterHidden {
+		base.WriteString(rebuildCursor(m.filter.View(), m.filter.Focused(), m.theme))
+	}
 	if len(m.visibleOptions) == 0 {
 		base.WriteString("No options found \n")
 	} else {
