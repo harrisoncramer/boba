@@ -98,23 +98,23 @@ You can set up a router with various views and child routes like this:
 		Quit:        shared.PluginOptions.Keys.Quit,
 		Views: router.Views{
 			{
-				Paths: []string{"root"},
+				Path: "root",
 				Model: NewMainModel(),
 				Children: router.Views{
 					{
-						Paths: []string{"subview-1", "subview-1-alias"}, // Will match either route name
+						Path: "subview-1",
 						Model: NewSubview1(),
 					},
 					{
-						Paths: []string{"subview-2"},
+						Path: "subview-2",
 						Model: NewSubview2(),
 						Children: router.Views{
 							{
-								Paths: []string{"subview-3?foo=bar"},
+								Path: "subview-3?foo=bar",
 								Model: NewSubview3()
 							},
 							{
-								Paths: []string{"subview-4"},
+								Path: "subview-4",
 								Model: NewSubview4()
 							},
 						},

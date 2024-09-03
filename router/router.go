@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"slices"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,14 +11,14 @@ import (
 )
 
 type View struct {
-	Paths    []string
+	Path     string
 	Model    tea.Model
 	Children []View
 }
 
 func (v View) isMatch(path string) bool {
 	view := strings.Split(path, "?")[0] // TODO: Nested views with query params
-	return slices.Contains(v.Paths, view)
+	return v.Path == view
 }
 
 // List of all top-level models in the application
@@ -81,10 +80,12 @@ func (m Router) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Router) View() string {
-	base := m.Model.View()       // The model of most of the application
+	base := m.Model.View() // The model of most of the application
+
+	currentView := viewStack[len(viewStack)-1]
 	base += lipgloss.NewStyle(). // Helper text to show the current route
 					Foreground(lipgloss.Color("#616161")).
-					Render(fmt.Sprintf("\nPath: %s", strings.Join(viewStack, "/")))
+					Render(fmt.Sprintf("\nPath: %s", currentView))
 	return base
 }
 
@@ -175,12 +176,12 @@ func (m *Router) replaceModel(view string) {
 
 // Provides the current url values parsed from the top route. Can be called
 // by components to get the params
-func GetParams() url.Values {
+func GetQueryParams() url.Values {
 	return parseQuery(viewStack[len(viewStack)-1])
 }
 
 // Provides a specific url parameter from the top route
-func GetParam(val string) string {
+func GetQueryParam(val string) string {
 	queries := parseQuery(viewStack[len(viewStack)-1])
 	return queries.Get(val)
 }
