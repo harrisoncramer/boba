@@ -24,13 +24,16 @@ type NewToggleOptions struct {
 	NoUp   bool
 	Theme  Theme
 	Keys   KeyOpts
+	On     bool
 }
+
+type SetToggleMsg struct{ On bool }
 
 // Allows for turning a boolean value true/false, and adheres to the ComponentModel
 // to be used in forms
 func NewToggleModel(opts NewToggleOptions) ComponentModel {
 	return &ToggleModel{
-		on:     false,
+		on:     opts.On,
 		label:  opts.Label,
 		name:   opts.Name,
 		noDown: opts.NoDown,
@@ -49,10 +52,13 @@ func (m ToggleModel) Update(msg tea.Msg) (ComponentModel, tea.Cmd) {
 		return &m, nil
 	}
 	switch msg := msg.(type) {
+	case SetToggleMsg:
+		m.on = msg.On
 	case tea.KeyMsg:
 		switch msg.String() {
 		case m.keys.Toggle:
 			m.on = !m.on
+			return &m, m.changeToggle
 		case m.keys.Up:
 			if m.Focused() && !m.noUp {
 				m.Blur()
@@ -67,6 +73,12 @@ func (m ToggleModel) Update(msg tea.Msg) (ComponentModel, tea.Cmd) {
 	}
 
 	return &m, nil
+}
+
+type ChangeToggleMsg struct{ On bool }
+
+func (m ToggleModel) changeToggle() tea.Msg {
+	return ChangeToggleMsg{On: m.on}
 }
 
 func (m ToggleModel) View() string {
